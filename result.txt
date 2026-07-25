@@ -2,19 +2,19 @@
   Eco-Loop Building Agent — Automated Test Report
   Honeywell Automation Hackathon 2026
 ============================================================================
-  Timestamp : 2026-07-25 22:44:31
+  Timestamp : 2026-07-25 23:05:12
   Platform  : win32 | Python 3.11.0
-  Total: 36 | Passed: 36 | Failed: 0 | Wall time: 26.61s
+  Total: 36 | Passed: 36 | Failed: 0 | Wall time: 22.15s
 ============================================================================
 
 ----------------------------------------------------------------------------
   1. Unit Tests — EnergyPlus Runner  (3/3 passed)
 ----------------------------------------------------------------------------
-  [PASS] SimulationConfig defaults  (0.427s)
+  [PASS] SimulationConfig defaults  (0.379s)
          Defaults correct: design_day_only=False, readvars=True
   [PASS] SimulationResult defaults  (0.000s)
          SimulationResult initialises with expected defaults
-  [PASS] Runner._find_file  (0.002s)
+  [PASS] Runner._find_file  (0.001s)
          Found existing file, returned None for missing file
 
 ----------------------------------------------------------------------------
@@ -34,7 +34,7 @@
 ----------------------------------------------------------------------------
   1. Unit Tests — Memory  (3/3 passed)
 ----------------------------------------------------------------------------
-  [PASS] ContextMemory sliding window  (0.090s)
+  [PASS] ContextMemory sliding window  (0.085s)
          7 steps added, window holds 3, total tracked = 7
   [PASS] ContextMemory clear  (0.000s)
          Memory cleared: total_steps=0, total_actions=0
@@ -44,11 +44,11 @@
 ----------------------------------------------------------------------------
   1. Unit Tests — LLM Client  (3/3 passed)
 ----------------------------------------------------------------------------
-  [PASS] LLMClient extract_tool_calls  (0.077s)
+  [PASS] LLMClient extract_tool_calls  (0.061s)
          Extracted 1 tool call: update_setpoints(zone=Core_ZN)
-  [PASS] LLMClient extract_content  (0.005s)
+  [PASS] LLMClient extract_content  (0.004s)
          Extracted content: 'Zone temperatures are nominal....'
-  [PASS] LLMClient handles empty response  (0.004s)
+  [PASS] LLMClient handles empty response  (0.005s)
          Empty response handled gracefully
 
 ----------------------------------------------------------------------------
@@ -62,7 +62,7 @@
 ----------------------------------------------------------------------------
   1. Unit Tests — Configuration  (2/2 passed)
 ----------------------------------------------------------------------------
-  [PASS] settings.yaml loads correctly  (0.003s)
+  [PASS] settings.yaml loads correctly  (0.002s)
          Config sections: ['energyplus', 'llm', 'constraints', 'tariff', 'carbon', 'dashboard', 'logging']
   [PASS] Constraint bounds are consistent  (0.001s)
          Heating: 18.0-24.0°C, Cooling: 22.0-28.0°C
@@ -72,51 +72,51 @@
 ----------------------------------------------------------------------------
   [PASS] EnergyPlus executable exists  (0.000s)
          Found: C:\EnergyPlusV26-1-0\energyplus.exe (0.1 MB)
-  [PASS] Baseline IDF structure is valid  (0.002s)
+  [PASS] Baseline IDF structure is valid  (0.001s)
          IDF size: 301936 bytes, Zone count: 13, Fanger comfort: present
   [PASS] Weather file exists  (0.001s)
          Found: USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw (1649 KB)
-  [PASS] Design-day simulation end-to-end  (1.049s)
-         Success in 1.0s, CSV rows: 192
+  [PASS] Design-day simulation end-to-end  (0.839s)
+         Success in 0.8s, CSV rows: 192
 
 ----------------------------------------------------------------------------
   2. Integration Tests — Parser  (4/4 passed)
 ----------------------------------------------------------------------------
-  [PASS] CSV parser produces valid DataFrame  (0.835s)
+  [PASS] CSV parser produces valid DataFrame  (0.843s)
          DataFrame: 192 rows x 52 cols
-  [PASS] KPI computation returns all keys  (0.830s)
+  [PASS] KPI computation returns all keys  (0.825s)
          total_kwh=517.4, peak_kw=13.2, avg_pmv=-0.323, comfort=98.4%
-  [PASS] Error log parser — no fatal errors  (0.811s)
+  [PASS] Error log parser — no fatal errors  (0.824s)
          Warnings: 22, Severe: 0, Fatal: 0
-  [PASS] get_latest_timestep returns data  (0.832s)
+  [PASS] get_latest_timestep returns data  (0.827s)
          Latest timestep has 52 variables
 
 ----------------------------------------------------------------------------
   2. Integration Tests — LLM  (2/2 passed)
 ----------------------------------------------------------------------------
-  [PASS] Ollama health check  (2.042s)
+  [PASS] Ollama health check  (2.037s)
          Ollama is reachable and model is loaded
-  [PASS] LLM responds to basic prompt  (6.561s)
+  [PASS] LLM responds to basic prompt  (2.419s)
          LLM responded: 'READY...'
 
 ----------------------------------------------------------------------------
   3. System Tests  (8/8 passed)
 ----------------------------------------------------------------------------
-  [PASS] Full baseline pipeline  (6.421s)
+  [PASS] Full baseline pipeline  (6.529s)
          Baseline energy: 15970 kWh, Comfort: 49.7%, Avg PMV: -0.165
-  [PASS] Orchestrator initialisation  (0.009s)
+  [PASS] Orchestrator initialisation  (0.007s)
          Orchestrator initialised, state=LoopState.INIT
-  [PASS] Orchestrator setup  (2.044s)
+  [PASS] Orchestrator setup  (2.075s)
          Orchestrator setup completed (E+ validated, LLM connected)
-  [PASS] Tool dispatch — valid tool  (2.045s)
+  [PASS] Tool dispatch — valid tool  (2.036s)
          read_sensors returned: ['status', 'simulated']
-  [PASS] Tool dispatch — invalid tool raises error  (2.069s)
+  [PASS] Tool dispatch — invalid tool raises error  (2.070s)
          ValueError raised for unknown tool as expected
-  [PASS] Action log file format  (0.004s)
+  [PASS] Action log file format  (0.003s)
          Action log exists with 96 entries
-  [PASS] Dashboard module imports  (0.433s)
+  [PASS] Dashboard module imports  (0.272s)
          Dashboard module imports without errors
-  [PASS] Project file structure complete  (0.001s)
+  [PASS] Project file structure complete  (0.000s)
          All 17 required files present
 
 ============================================================================
