@@ -1,34 +1,124 @@
-========================================================================
-Eco-Loop Building Agent - Final Simulation Results Report
-========================================================================
+============================================================================
+  Eco-Loop Building Agent — Automated Test Report
+  Honeywell Automation Hackathon 2026
+============================================================================
+  Timestamp : 2026-07-25 19:14:56
+  Platform  : win32 | Python 3.11.0
+  Total: 36 | Passed: 36 | Failed: 0 | Wall time: 28.85s
+============================================================================
 
-1. BASELINE SIMULATION RESULTS
-Script Executed: python scripts/run_baseline.py
-Description: Evaluated the EnergyPlus (v26.1) model (models/baseline.idf) on a standard rigid schedule without AI intervention.
+----------------------------------------------------------------------------
+  1. Unit Tests — EnergyPlus Runner  (3/3 passed)
+----------------------------------------------------------------------------
+  [PASS] SimulationConfig defaults  (0.056s)
+         Defaults correct: design_day_only=False, readvars=True
+  [PASS] SimulationResult defaults  (0.000s)
+         SimulationResult initialises with expected defaults
+  [PASS] Runner._find_file  (0.001s)
+         Found existing file, returned None for missing file
 
-- Total Energy Consumption: 15,970 kWh
-- Peak Energy Demand: 13.91 kW
-- Occupant Comfort Score (PMV Compliance): 49.68%
-- Maximum Zone Temperature: 57.5 °C (Attic)
-- Minimum Zone Temperature: -26.1 °C (Unconditioned periods)
+----------------------------------------------------------------------------
+  1. Unit Tests — Actuator  (5/5 passed)
+----------------------------------------------------------------------------
+  [PASS] SetpointUpdate dataclass  (0.103s)
+         zone=Core_ZN, heating=21.0, cooling=24.0
+  [PASS] Safety clamp — heating below min  (0.011s)
+         Requested 10°C, clamped to 15.0°C
+  [PASS] Safety clamp — cooling above max  (0.001s)
+         Requested 35°C, clamped to 30.0°C
+  [PASS] Valid setpoints — no clamping  (0.002s)
+         21°C / 24°C passed through without clamping
+  [PASS] Safety clamp — lighting above 1.0  (0.002s)
+         Requested 1.5, clamped to 1.0
 
-Analysis: The rigid baseline scheduling results in significant energy waste and very poor thermal comfort compliance (only ~50% of occupied hours were within the acceptable -0.5 to +0.5 PMV threshold).
+----------------------------------------------------------------------------
+  1. Unit Tests — Memory  (3/3 passed)
+----------------------------------------------------------------------------
+  [PASS] ContextMemory sliding window  (0.002s)
+         7 steps added, window holds 3, total tracked = 7
+  [PASS] ContextMemory clear  (0.001s)
+         Memory cleared: total_steps=0, total_actions=0
+  [PASS] ContextMemory summary generation  (0.000s)
+         Context messages contain historical summary block (4 messages)
 
-------------------------------------------------------------------------
+----------------------------------------------------------------------------
+  1. Unit Tests — LLM Client  (3/3 passed)
+----------------------------------------------------------------------------
+  [PASS] LLMClient extract_tool_calls  (0.175s)
+         Extracted 1 tool call: update_setpoints(zone=Core_ZN)
+  [PASS] LLMClient extract_content  (0.005s)
+         Extracted content: 'Zone temperatures are nominal....'
+  [PASS] LLMClient handles empty response  (0.005s)
+         Empty response handled gracefully
 
-2. AI AUTONOMOUS CLOSED-LOOP SIMULATION RESULTS
-Script Executed: python scripts/run_loop.py
-Description: Executed the Orchestrator with the Qwen2.5-7B-Instruct local LLM controlling setpoints dynamically over a 24-hour design-day horizon.
+----------------------------------------------------------------------------
+  1. Unit Tests — Prompts  (2/2 passed)
+----------------------------------------------------------------------------
+  [PASS] System prompt and tool definitions  (0.001s)
+         System prompt length: 2708 chars, 9 tool definitions
+  [PASS] format_timestep_message  (0.000s)
+         Formatted message length: 760 chars
 
-- Total Timesteps Evaluated: 96 steps (15-minute intervals)
-- AI Reasoning Latency: ~8-12 seconds per decision on local inference
-- Total Execution Time: 16.5 minutes (999.0s total)
-- Fatal Errors / Crashes: 0
-- Loop State Compliance: 100%
+----------------------------------------------------------------------------
+  1. Unit Tests — Configuration  (2/2 passed)
+----------------------------------------------------------------------------
+  [PASS] settings.yaml loads correctly  (0.002s)
+         Config sections: ['energyplus', 'llm', 'constraints', 'tariff', 'carbon', 'dashboard', 'logging']
+  [PASS] Constraint bounds are consistent  (0.001s)
+         Heating: 18.0-24.0°C, Cooling: 22.0-28.0°C
 
-Analysis: The AI agent successfully ingested live sensors (Zone Temperatures and PMV metrics) at every 15-minute timestep. The LLM accurately reasoned about the state (e.g., observing when the building was unoccupied or when PMV drifted out of bounds) and proved it could execute continuous control actions robustly via the Model Context Protocol (MCP) tool chain without failure.
+----------------------------------------------------------------------------
+  2. Integration Tests — EnergyPlus  (4/4 passed)
+----------------------------------------------------------------------------
+  [PASS] EnergyPlus executable exists  (0.000s)
+         Found: C:\EnergyPlusV26-1-0\energyplus.exe (0.1 MB)
+  [PASS] Baseline IDF structure is valid  (0.001s)
+         IDF size: 301936 bytes, Zone count: 13, Fanger comfort: present
+  [PASS] Weather file exists  (0.000s)
+         Found: USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw (1649 KB)
+  [PASS] Design-day simulation end-to-end  (0.899s)
+         Success in 0.9s, CSV rows: 192
 
-------------------------------------------------------------------------
+----------------------------------------------------------------------------
+  2. Integration Tests — Parser  (4/4 passed)
+----------------------------------------------------------------------------
+  [PASS] CSV parser produces valid DataFrame  (1.119s)
+         DataFrame: 192 rows x 52 cols
+  [PASS] KPI computation returns all keys  (0.853s)
+         total_kwh=517.4, peak_kw=13.2, avg_pmv=-0.323, comfort=98.4%
+  [PASS] Error log parser — no fatal errors  (0.812s)
+         Warnings: 22, Severe: 0, Fatal: 0
+  [PASS] get_latest_timestep returns data  (0.861s)
+         Latest timestep has 52 variables
 
-CONCLUSION:
-The Proof-of-Concept is a complete success. The physical building environment (EnergyPlus) can be actively and stably steered by an open-source LLM, laying the groundwork for substantial real-world energy reduction and improved occupant comfort compared to the standard 15,970 kWh baseline.
+----------------------------------------------------------------------------
+  2. Integration Tests — LLM  (2/2 passed)
+----------------------------------------------------------------------------
+  [PASS] Ollama health check  (2.039s)
+         Ollama is reachable and model is loaded
+  [PASS] LLM responds to basic prompt  (8.588s)
+         LLM responded: 'READY...'
+
+----------------------------------------------------------------------------
+  3. System Tests  (8/8 passed)
+----------------------------------------------------------------------------
+  [PASS] Full baseline pipeline  (6.730s)
+         Baseline energy: 15970 kWh, Comfort: 49.7%, Avg PMV: -0.165
+  [PASS] Orchestrator initialisation  (0.010s)
+         Orchestrator initialised, state=LoopState.INIT
+  [PASS] Orchestrator setup  (2.047s)
+         Orchestrator setup completed (E+ validated, LLM connected)
+  [PASS] Tool dispatch — valid tool  (2.073s)
+         read_sensors returned: ['status', 'simulated']
+  [PASS] Tool dispatch — invalid tool raises error  (2.052s)
+         ValueError raised for unknown tool as expected
+  [PASS] Action log file format  (0.006s)
+         Action log exists with 96 entries
+  [PASS] Dashboard module imports  (0.387s)
+         Dashboard module imports without errors
+  [PASS] Project file structure complete  (0.001s)
+         All 17 required files present
+
+============================================================================
+  VERDICT: ALL TESTS PASSED
+============================================================================
