@@ -2,15 +2,15 @@
   Eco-Loop Building Agent — Automated Test Report
   Honeywell Automation Hackathon 2026
 ============================================================================
-  Timestamp : 2026-07-25 23:05:12
+  Timestamp : 2026-07-26 00:11:56
   Platform  : win32 | Python 3.11.0
-  Total: 36 | Passed: 36 | Failed: 0 | Wall time: 22.15s
+  Total: 36 | Passed: 36 | Failed: 0 | Wall time: 22.85s
 ============================================================================
 
 ----------------------------------------------------------------------------
   1. Unit Tests — EnergyPlus Runner  (3/3 passed)
 ----------------------------------------------------------------------------
-  [PASS] SimulationConfig defaults  (0.379s)
+  [PASS] SimulationConfig defaults  (0.416s)
          Defaults correct: design_day_only=False, readvars=True
   [PASS] SimulationResult defaults  (0.000s)
          SimulationResult initialises with expected defaults
@@ -22,19 +22,19 @@
 ----------------------------------------------------------------------------
   [PASS] SetpointUpdate dataclass  (0.000s)
          zone=Core_ZN, heating=21.0, cooling=24.0
-  [PASS] Safety clamp — heating below min  (0.002s)
+  [PASS] Safety clamp — heating below min  (0.003s)
          Requested 10°C, clamped to 15.0°C
   [PASS] Safety clamp — cooling above max  (0.002s)
          Requested 35°C, clamped to 30.0°C
-  [PASS] Valid setpoints — no clamping  (0.002s)
+  [PASS] Valid setpoints — no clamping  (0.001s)
          21°C / 24°C passed through without clamping
-  [PASS] Safety clamp — lighting above 1.0  (0.001s)
+  [PASS] Safety clamp — lighting above 1.0  (0.002s)
          Requested 1.5, clamped to 1.0
 
 ----------------------------------------------------------------------------
   1. Unit Tests — Memory  (3/3 passed)
 ----------------------------------------------------------------------------
-  [PASS] ContextMemory sliding window  (0.085s)
+  [PASS] ContextMemory sliding window  (0.104s)
          7 steps added, window holds 3, total tracked = 7
   [PASS] ContextMemory clear  (0.000s)
          Memory cleared: total_steps=0, total_actions=0
@@ -44,11 +44,11 @@
 ----------------------------------------------------------------------------
   1. Unit Tests — LLM Client  (3/3 passed)
 ----------------------------------------------------------------------------
-  [PASS] LLMClient extract_tool_calls  (0.061s)
+  [PASS] LLMClient extract_tool_calls  (0.052s)
          Extracted 1 tool call: update_setpoints(zone=Core_ZN)
-  [PASS] LLMClient extract_content  (0.004s)
+  [PASS] LLMClient extract_content  (0.005s)
          Extracted content: 'Zone temperatures are nominal....'
-  [PASS] LLMClient handles empty response  (0.005s)
+  [PASS] LLMClient handles empty response  (0.004s)
          Empty response handled gracefully
 
 ----------------------------------------------------------------------------
@@ -64,7 +64,7 @@
 ----------------------------------------------------------------------------
   [PASS] settings.yaml loads correctly  (0.002s)
          Config sections: ['energyplus', 'llm', 'constraints', 'tariff', 'carbon', 'dashboard', 'logging']
-  [PASS] Constraint bounds are consistent  (0.001s)
+  [PASS] Constraint bounds are consistent  (0.002s)
          Heating: 18.0-24.0°C, Cooling: 22.0-28.0°C
 
 ----------------------------------------------------------------------------
@@ -72,49 +72,49 @@
 ----------------------------------------------------------------------------
   [PASS] EnergyPlus executable exists  (0.000s)
          Found: C:\EnergyPlusV26-1-0\energyplus.exe (0.1 MB)
-  [PASS] Baseline IDF structure is valid  (0.001s)
+  [PASS] Baseline IDF structure is valid  (0.016s)
          IDF size: 301936 bytes, Zone count: 13, Fanger comfort: present
-  [PASS] Weather file exists  (0.001s)
+  [PASS] Weather file exists  (0.000s)
          Found: USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw (1649 KB)
-  [PASS] Design-day simulation end-to-end  (0.839s)
-         Success in 0.8s, CSV rows: 192
+  [PASS] Design-day simulation end-to-end  (0.909s)
+         Success in 0.9s, CSV rows: 192
 
 ----------------------------------------------------------------------------
   2. Integration Tests — Parser  (4/4 passed)
 ----------------------------------------------------------------------------
-  [PASS] CSV parser produces valid DataFrame  (0.843s)
+  [PASS] CSV parser produces valid DataFrame  (0.894s)
          DataFrame: 192 rows x 52 cols
-  [PASS] KPI computation returns all keys  (0.825s)
+  [PASS] KPI computation returns all keys  (0.855s)
          total_kwh=517.4, peak_kw=13.2, avg_pmv=-0.323, comfort=98.4%
-  [PASS] Error log parser — no fatal errors  (0.824s)
+  [PASS] Error log parser — no fatal errors  (0.889s)
          Warnings: 22, Severe: 0, Fatal: 0
-  [PASS] get_latest_timestep returns data  (0.827s)
+  [PASS] get_latest_timestep returns data  (0.898s)
          Latest timestep has 52 variables
 
 ----------------------------------------------------------------------------
   2. Integration Tests — LLM  (2/2 passed)
 ----------------------------------------------------------------------------
-  [PASS] Ollama health check  (2.037s)
+  [PASS] Ollama health check  (2.033s)
          Ollama is reachable and model is loaded
-  [PASS] LLM responds to basic prompt  (2.419s)
+  [PASS] LLM responds to basic prompt  (2.459s)
          LLM responded: 'READY...'
 
 ----------------------------------------------------------------------------
   3. System Tests  (8/8 passed)
 ----------------------------------------------------------------------------
-  [PASS] Full baseline pipeline  (6.529s)
+  [PASS] Full baseline pipeline  (6.867s)
          Baseline energy: 15970 kWh, Comfort: 49.7%, Avg PMV: -0.165
-  [PASS] Orchestrator initialisation  (0.007s)
+  [PASS] Orchestrator initialisation  (0.008s)
          Orchestrator initialised, state=LoopState.INIT
-  [PASS] Orchestrator setup  (2.075s)
+  [PASS] Orchestrator setup  (2.061s)
          Orchestrator setup completed (E+ validated, LLM connected)
-  [PASS] Tool dispatch — valid tool  (2.036s)
-         read_sensors returned: ['status', 'simulated']
-  [PASS] Tool dispatch — invalid tool raises error  (2.070s)
+  [PASS] Tool dispatch — valid tool  (2.053s)
+         read_sensors returned: ['status', 'zone']
+  [PASS] Tool dispatch — invalid tool raises error  (2.045s)
          ValueError raised for unknown tool as expected
-  [PASS] Action log file format  (0.003s)
+  [PASS] Action log file format  (0.006s)
          Action log exists with 96 entries
-  [PASS] Dashboard module imports  (0.272s)
+  [PASS] Dashboard module imports  (0.262s)
          Dashboard module imports without errors
   [PASS] Project file structure complete  (0.000s)
          All 17 required files present
