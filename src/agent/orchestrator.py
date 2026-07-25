@@ -192,6 +192,9 @@ class Orchestrator:
         self.state = LoopState.LOGGING
         self._log_step(sensor_data, llm_response, action_results)
 
+        # Flush log to disk every step so the dashboard can read live data
+        self._save_action_log()
+
         step_elapsed = time.time() - step_start
         logger.info(f"Step {self._step_count} completed in {step_elapsed:.2f}s")
 
