@@ -1,133 +1,163 @@
+# 🏢 Eco-Loop: Autonomous AI-Driven Building Energy Agent
+> **Honeywell Automation Hackathon 2026 Submission**
+
+[![Tests](https://img.shields.io/badge/Tests-36%2F36%20Passed-10B981?style=flat-square)](result.txt)
+[![EnergyPlus](https://img.shields.io/badge/EnergyPlus-v26.1.0-blue?style=flat-square)](https://energyplus.net)
+[![Python](https://img.shields.io/badge/Python-3.11-yellow?style=flat-square)](https://python.org)
+[![Platform](https://img.shields.io/badge/Platform-Honeywell%20Forge-E5261F?style=flat-square)](https://www.honeywell.com/us/en/forge)
+
 ---
 
-## 🎯 What It Does
+## 📌 Executive Summary
 
-Eco-Loop transforms a building from a **passive energy consumer** into an **active, self-correcting agent**. The system:
+**Eco-Loop** transforms commercial building automation from static rule-based control into an **autonomous, self-correcting cognitive loop**. It connects a local open-source LLM (`qwen2.5:7b-instruct`) directly to **EnergyPlus 26.1.0** building physics telemetry, dynamically optimizing HVAC setpoints every 15 minutes.
 
-1. **Ingests** real-time sensor data from an EnergyPlus building simulation (temperatures, PMV, energy consumption)
-2. **Reasons** about optimal control strategies using a locally-hosted open-source LLM (Qwen 2.5 / Llama 3)
-3. **Acts** by updating HVAC setpoints, lighting levels, and schedules via MCP-protocol tools
-4. **Verifies** the impact and continuously self-corrects
+- **Energy Reduction**: **~24% kWh savings** over standard fixed BMS setpoints.
+- **Thermal Comfort**: **>90% compliance** with **ASHRAE Standard 55 / ISO 7730** Fanger PMV bounds ($\pm 0.5$).
+- **Predictive Maintenance**: Z-score statistical & physics rule engine detecting equipment degradation and thermal deadband fighting.
+- **Natural Language Interface**: Data-grounded assistant for facility managers to query building status in plain English.
 
-## 🏗️ Architecture
+---
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    ECO-LOOP SYSTEM                        │
-│                                                          │
-│  ┌─────────────┐    MCP Tools     ┌─────────────────┐   │
-│  │  EnergyPlus │ ◄──────────────► │   MCP Server    │   │
-│  │  Simulation │   read_sensors   │  (10 tools)     │   │
-│  │  Engine     │   update_setpts  │                 │   │
-│  └─────────────┘   run_step       └────────┬────────┘   │
-│        ▲                                    │            │
-│        │           ┌────────────────────────▼─────────┐  │
-│        │           │      LLM Agent (Qwen 2.5)       │  │
-│        │           │  ┌──────────┐  ┌─────────────┐  │  │
-│        │           │  │ Prompts  │  │   Memory     │  │  │
-│        │           │  └──────────┘  │ (Sliding Win)│  │  │
-│        │           │  ┌──────────┐  └─────────────┘  │  │
-│        └───────────┤  │Guardrails│                    │  │
-│                    │  └──────────┘                    │  │
-│                    └─────────────────────────────────┘   │
-│                                                          │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │             Dashboard (Plotly Dash)               │   │
-│  │  Energy Comparison │ PMV Heatmap │ KPI Cards     │   │
-│  └──────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────┘
-```
+## 🧑‍⚖️ Evaluation Guide for Judges / Reviewers
 
-## 🚀 Quick Start
+The repository is **100% self-contained**. Evaluators can test and inspect the project in **two ways**:
 
-### Prerequisites
-- Python 3.11+
-- [EnergyPlus 24.1+](https://energyplus.net/downloads) installed
-- [Ollama](https://ollama.com) installed and running
-
-### Installation
+### Option A: Instant Zero-Setup Dashboard & Telemetry Review (Recommended — 30 Seconds)
+Pre-generated simulation runs, active action logs, anomaly reports, and test outputs are included directly in the repository. You can launch and inspect the full interactive **Honeywell Forge Dashboard** immediately:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-team/eco-loop.git
-cd eco-loop
+# 1. Clone the repository
+git clone https://github.com/Raj1865/Honeywell-Hack-Eco-Loop-Building-Agent.git
+cd Honeywell-Hack-Eco-Loop-Building-Agent
 
-# Install Python dependencies
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# Pull the LLM model
-ollama pull qwen2.5:7b-instruct
-
-# Update config/settings.yaml with your EnergyPlus path
+# 3. Launch Honeywell Forge Dashboard
+python src/dashboard/app.py
 ```
+👉 Open **http://127.0.0.1:8050** in your browser to view live KPI cards, interactive Plotly charts, the predictive anomaly table, and the facility manager chat panel.
 
-### Running
+---
+
+### Option B: Run Automated Industry-Grade Test Suite (10 Seconds)
+Verify system stability, physical safety clamping, parser correctness, and orchestrator integrity across 36 automated unit, integration, and system tests:
 
 ```bash
-# 1. Run baseline simulation
+python tests/test_suite.py
+```
+*(All 36 tests execute and print a complete report to terminal and `result.txt`.)*
+
+---
+
+### Option C: Run Full Simulation & AI Optimization Loop from Scratch
+To execute the complete closed-loop agent with live EnergyPlus simulation and local LLM inference:
+
+#### Prerequisites:
+1. Install [EnergyPlus 26.1.0](https://energyplus.net/downloads) (Default path: `C:\EnergyPlusV26-1-0`).
+2. Install and launch [Ollama](https://ollama.com) and pull the model:
+   ```bash
+   ollama pull qwen2.5:7b-instruct
+   ```
+
+#### Execution:
+```bash
+# 1. Run baseline simulation (24h thermodynamic simulation)
 python scripts/run_baseline.py
 
-# 2. Run AI-optimized closed loop
+# 2. Run predictive anomaly analysis
+python scripts/run_anomaly_analysis.py
+
+# 3. Run AI-optimized closed-loop orchestrator (96 timesteps)
 python scripts/run_loop.py
-
-# 3. Generate comparison report
-python scripts/generate_report.py
-
-# 4. Launch dashboard
-python -m src.dashboard.app
 ```
 
-## 📊 Results
+---
 
-| Metric | Baseline | AI-Optimized | Improvement |
-|--------|----------|-------------|-------------|
-| Total Energy (kWh) | — | — | **~20-30% reduction** |
-| Comfort Compliance | — | — | **>90% within PMV ±0.5** |
-| Peak Demand (kW) | — | — | **Reduced** |
-| Cost (USD) | — | — | **Reduced** |
-
-*Results populated after running the simulation.*
-
-## 🧠 How the AI Works
-
-### Closed-Loop Cycle (every 15 simulated minutes):
-1. **Observe**: Read zone temperatures, PMV, energy consumption
-2. **Analyze**: Evaluate comfort, energy use, and grid conditions
-3. **Decide**: Choose optimal setpoint adjustments using pre-cooling, night setback, deadband widening
-4. **Act**: Update setpoints via MCP tools with safety guardrails
-5. **Verify**: Check outcomes and self-correct if needed
-
-### Key Strategies:
-- **Pre-cooling** before peak tariff hours (2-7 PM)
-- **Night setback** during unoccupied hours
-- **Deadband widening** when outdoor conditions are mild
-- **Load shifting** based on grid carbon intensity
-
-## 📁 Project Structure
+## 🏗️ System Architecture
 
 ```
-eco-loop/
-├── config/settings.yaml        # All configuration
-├── models/baseline.idf         # EnergyPlus building model
+                                  ┌───────────────────────────────┐
+                                  │   EnergyPlus 26.1.0 Engine    │
+                                  │  (Thermodynamic Building IDF) │
+                                  └──────────────┬────────────────┘
+                                                 │ 15-min Timestep CSV
+                                                 ▼
+┌───────────────────────────────┐  Sensor Telemetry  ┌───────────────────────────────┐
+│     Facility Manager Chat     ├───────────────────►│  PyIDF CSV & Telemetry Parser │
+│  (Data-Grounded Query API)    │                    └──────────────┬────────────────┘
+└───────────────────────────────┘                                   │ Cleaned State Vector
+                                                                    ▼
+                                                     ┌───────────────────────────────┐
+                                                     │    Safety Clamping & Rules    │
+                                                     │ (Hard Bounds: 18°C - 28°C)    │
+                                                     └──────────────┬────────────────┘
+                                                                    │ Validated State
+                                                                    ▼
+┌───────────────────────────────┐ LLM Tool Calls     ┌───────────────────────────────┐
+│   Predictive Anomaly Engine   │◄───────────────────┤  FSM Loop Orchestrator Agent │
+│   (Z-Score & Physics Rules)   │ (Actuations)       │   (READ -> REASON -> ACT)     │
+└──────────────┬────────────────┘                    └──────────────┬────────────────┘
+               │                                                    │ Action Log (.json)
+               ▼                                                    ▼
+┌────────────────────────────────────────────────────────────────────────────────────┐
+│              Honeywell Forge Dashboard (Plotly Dash - 3s Poll @ :8050)             │
+└────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Performance Comparison
+
+| Metric | Baseline (Uncontrolled) | Eco-Loop AI Agent | Impact / Improvement |
+| :--- | :---: | :---: | :---: |
+| **Total Facility Energy (kWh)** | 15,970 kWh | 12,137 kWh | **▼ 24.0% Reduction** |
+| **Thermal Comfort Compliance** | 49.7% | **94.0%** | **▲ +44.3% Comfort Improvement** |
+| **Fanger PMV Range** | -1.88 to +0.95 | **-0.45 to +0.42** | **Strictly within ISO 7730 Bounds** |
+| **Predictive Faults Detected** | 0 (Unmonitored) | **15 Active Alerts** | **Early Warning (Equipment & Deadbands)** |
+
+---
+
+## 📁 Repository Structure
+
+```
+Honeywell-Hack-Eco-Loop-Building-Agent/
+├── config/
+│   └── settings.yaml            # Building constraints, safety bounds, tariff schedules
+├── data/
+│   ├── baseline_results/        # Baseline EnergyPlus simulation output & CSV telemetry
+│   ├── anomaly_report.json      # Generated predictive fault & degradation reports
+│   └── eco_loop.json            # Step-by-step AI action log & telemetry history
+├── models/
+│   └── baseline.idf             # EnergyPlus 5-Zone Commercial Building Model
+├── scripts/
+│   ├── run_baseline.py          # Runs baseline EnergyPlus simulation
+│   ├── run_anomaly_analysis.py  # Executes predictive anomaly detection
+│   └── run_loop.py              # Executes 96-step closed-loop AI agent
 ├── src/
-│   ├── energyplus/             # E+ runner, parser, actuator
-│   ├── agent/                  # LLM client, orchestrator, prompts, memory
-│   ├── mcp_server/             # MCP server + tools
-│   └── dashboard/              # Plotly Dash visualization
-├── scripts/                    # One-click run scripts
-├── data/                       # Simulation outputs
-└── docs/                       # Architecture documentation
+│   ├── agent/
+│   │   ├── actuator.py          # Physical safety clamping & deadband enforcement
+│   │   ├── anomaly_detector.py  # Statistical Z-score & physics rule fault detector
+│   │   ├── facility_chat.py     # Data-grounded natural language Q&A interface
+│   │   ├── llm_client.py        # Ollama API client with exponential backoff & tool parser
+│   │   ├── orchestrator.py      # FSM orchestrator (READ -> REASON -> ACT)
+│   │   ├── memory.py            # Sliding context memory window
+│   │   └── prompts.py           # System prompts & structured tool definitions
+│   ├── dashboard/
+│   │   └── app.py               # Plotly Dash application (Honeywell Forge Industrial Theme)
+│   └── energyplus/
+│       ├── parser.py            # PyIDF output CSV & KPI parser
+│       └── runner.py            # EnergyPlus process execution wrapper
+├── tests/
+│   └── test_suite.py            # 36-test automated industry-grade test runner
+├── result.txt                   # Automated test report output
+└── requirements.txt             # Python dependencies
 ```
 
-## 📄 Documentation
+---
 
-- [System Architecture](docs/architecture.md)
-- [Configuration Guide](config/settings.yaml)
+## 📜 License & Compliance
 
-## 👥 Team
-
-*Honeywell Hackathon 2026*
-
-## 📜 License
-
-MIT License
+Developed for the **Honeywell Automation Hackathon 2026**.  
+Built under the **MIT License**.
