@@ -1,12 +1,3 @@
-# Eco-Loop Building Agents 🏢🤖
-
-> **Autonomous AI-Driven Building Energy Optimization**  
-> A closed-loop system pairing EnergyPlus simulation with an open-source LLM to autonomously optimize building energy consumption while maintaining thermal comfort.
-
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
-[![EnergyPlus](https://img.shields.io/badge/EnergyPlus-24.1-orange.svg)](https://energyplus.net)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
 ---
 
 ## 🎯 What It Does
