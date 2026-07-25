@@ -99,6 +99,44 @@ def _load_anomalies() -> list:
     return []
 
 
+def _format_anomalies_for_table(anomalies: list) -> list:
+    """Normalize raw anomaly report JSON objects for DataTable display."""
+    formatted = []
+    for a in anomalies:
+        category = a.get("category") or a.get("metric") or "FAULT_DETECTED"
+        category_clean = str(category).replace("_", " ").title()
+        
+        actual_val = a.get("actual") if a.get("actual") is not None else a.get("observed_value", 0.0)
+        if isinstance(actual_val, (int, float)):
+            actual_str = f"{actual_val:.1f}°C"
+        else:
+            actual_str = str(actual_val)
+            
+        expected_val = a.get("expected") if a.get("expected") is not None else a.get("expected_value", 0.0)
+        if isinstance(expected_val, (int, float)):
+            expected_str = f"{expected_val:.1f}°C"
+        else:
+            expected_str = str(expected_val)
+            
+        dev_val = a.get("deviation_pct") if a.get("deviation_pct") is not None else a.get("z_score", 0.0)
+        if isinstance(dev_val, (int, float)):
+            dev_str = f"{dev_val:.1f}%"
+        else:
+            dev_str = str(dev_val)
+
+        formatted.append({
+            "timestamp": a.get("timestamp", "N/A"),
+            "zone": a.get("zone", "CORE_ZN"),
+            "metric": category_clean,
+            "observed_value": actual_str,
+            "expected_value": expected_str,
+            "z_score": dev_str,
+            "severity": a.get("severity", "HIGH"),
+            "action": a.get("action", "No action specified"),
+        })
+    return formatted
+
+
 def _compute_live_metrics(action_log: list) -> dict:
     if not action_log:
         return {"steps": 0, "temps": [], "pmvs": [], "timestamps": []}
@@ -320,13 +358,7 @@ def create_dashboard() -> dash.Dash:
                             html.Span("🟢 LIVE HIL CONNECTED", style={
                                 "color": "#34D399", "fontWeight": "700", "fontSize": "0.78rem",
                                 "backgroundColor": "rgba(52, 211, 153, 0.15)", "padding": "6px 14px",
-                                "borderRadius": "20px", "border": "1px solid rgba(52, 211, 153, 0.3)",
-                                "marginRight": "10px"
-                            }),
-                            html.Button("Check Pro Version", style={
-                                "backgroundColor": "#0284C7", "color": "white", "border": "none",
-                                "fontWeight": "700", "fontSize": "0.82rem", "padding": "7px 16px",
-                                "borderRadius": "20px", "boxShadow": "0 4px 12px rgba(2, 132, 199, 0.4)"
+                                "borderRadius": "20px", "border": "1px solid rgba(52, 211, 153, 0.3)"
                             }),
                         ], className="d-flex align-items-center justify-content-end"),
                     ], width=5),
@@ -438,13 +470,15 @@ def create_dashboard() -> dash.Dash:
             ])
 
         elif active_tab == "tab-anomalies":
-            anomalies = _load_anomalies()
-            if not anomalies:
-                anomalies = [
-                    {"timestamp": "2026-07-25 14:00", "zone": "CORE_ZN", "metric": "Cooling Deadband", "observed_value": "29.4°C", "expected_value": "24.0°C", "z_score": 3.42, "severity": "CRITICAL", "action": "Re-balance VAV Damper & Check Chiller Valve"},
-                    {"timestamp": "2026-07-25 15:15", "zone": "PERIMETER_ZN_1", "metric": "PMV Drift", "observed_value": "+1.12 PMV", "expected_value": "±0.5 PMV", "z_score": 2.85, "severity": "HIGH", "action": "Increase Supply Air Flow Rate"},
-                    {"timestamp": "2026-07-25 16:30", "zone": "PERIMETER_ZN_3", "metric": "Solar Radiation Heat Spike", "observed_value": "780 W/m²", "expected_value": "400 W/m²", "z_score": 2.10, "severity": "MODERATE", "action": "Lower Exterior Blinds / Pre-Cool Zone"},
+            raw_anomalies = _load_anomalies()
+            if not raw_anomalies:
+                raw_anomalies = [
+                    {"timestamp": "Jul 22, 17:30", "zone": "CORE_ZN", "category": "COMFORT_DRIFT", "actual": 28.7, "expected": 23.0, "deviation_pct": 24.8, "severity": "HIGH", "action": "Inspect cooling coil & VAV damper position for CORE_ZN."},
+                    {"timestamp": "Jan 01, 07:45", "zone": "CORE_ZN", "category": "EQUIPMENT_DEGRADATION", "actual": 15.5, "expected": 20.0, "deviation_pct": 22.6, "severity": "HIGH", "action": "Check heating coil supply & boiler loop for CORE_ZN."},
+                    {"timestamp": "Jul 19, 18:00", "zone": "PERIMETER_ZN_1", "category": "COMFORT_DRIFT", "actual": 27.8, "expected": 23.0, "deviation_pct": 20.9, "severity": "HIGH", "action": "Inspect cooling coil & VAV damper position for PERIMETER_ZN_1."},
                 ]
+
+            anomalies = _format_anomalies_for_table(raw_anomalies)
 
             return html.Div([
                 html.Div([
@@ -461,23 +495,28 @@ def create_dashboard() -> dash.Dash:
                             {"name": "Metric Fault", "id": "metric"},
                             {"name": "Observed", "id": "observed_value"},
                             {"name": "Expected", "id": "expected_value"},
-                            {"name": "Z-Score", "id": "z_score"},
+                            {"name": "Deviation / Z-Score", "id": "z_score"},
                             {"name": "Severity", "id": "severity"},
                             {"name": "Recommended Action", "id": "action"},
                         ],
                         style_header={
                             "backgroundColor": "#F8FAFC", "color": "#0F172A", "fontWeight": "800",
-                            "borderBottom": "2px solid #E2E8F0", "fontFamily": "Plus Jakarta Sans"
+                            "borderBottom": "2px solid #E2E8F0", "fontFamily": "Plus Jakarta Sans", "textAlign": "left"
                         },
                         style_cell={
                             "backgroundColor": "#FFFFFF", "color": "#334155",
                             "fontFamily": "Plus Jakarta Sans", "fontSize": "0.85rem", "padding": "14px 16px",
-                            "borderBottom": "1px solid #F1F5F9"
+                            "borderBottom": "1px solid #F1F5F9", "textAlign": "left"
                         },
+                        style_cell_conditional=[
+                            {"if": {"column_id": "action"}, "minWidth": "320px", "whiteSpace": "normal", "height": "auto"},
+                            {"if": {"column_id": "metric"}, "fontWeight": "700"},
+                            {"if": {"column_id": "severity"}, "fontWeight": "700", "textAlign": "center"},
+                        ],
                         style_data_conditional=[
-                            {"if": {"column_id": "severity", "filter_query": '{severity} = "CRITICAL"'}, "backgroundColor": "#FEE2E2", "color": "#991B1B", "fontWeight": "700"},
-                            {"if": {"column_id": "severity", "filter_query": '{severity} = "HIGH"'}, "backgroundColor": "#FEF3C7", "color": "#92400E", "fontWeight": "700"},
-                            {"if": {"column_id": "severity", "filter_query": '{severity} = "MODERATE"'}, "backgroundColor": "#E0F2FE", "color": "#075985", "fontWeight": "700"},
+                            {"if": {"column_id": "severity", "filter_query": '{severity} = "CRITICAL"'}, "backgroundColor": "#FEE2E2", "color": "#991B1B"},
+                            {"if": {"column_id": "severity", "filter_query": '{severity} = "HIGH"'}, "backgroundColor": "#FEF3C7", "color": "#92400E"},
+                            {"if": {"column_id": "severity", "filter_query": '{severity} = "MODERATE"'}, "backgroundColor": "#E0F2FE", "color": "#075985"},
                         ],
                         page_size=10,
                     )
@@ -526,7 +565,6 @@ def create_dashboard() -> dash.Dash:
         action_log = _load_action_log()
 
         b_kwh = float(b_kpis.get("total_kwh", 15970.1))
-        b_comfort = float(b_kpis.get("comfort_hours_pct", 49.7))
 
         metrics = _compute_live_metrics(action_log)
         current_step = metrics["steps"] if metrics["steps"] > 0 else 96
