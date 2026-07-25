@@ -77,9 +77,8 @@ class EnergyPlusRunner:
         """Build the EnergyPlus command line."""
         cmd = [
             self.config.energyplus_exe,
-            "--idf", str(idf_path),
             "--weather", str(Path(self.config.weather_path).resolve()),
-            "--output-directory", str(self._working_dir),
+            "--output-directory", str(self._working_dir.resolve()),
         ]
 
         if self.config.design_day_only:
@@ -92,6 +91,7 @@ class EnergyPlusRunner:
             cmd.append("--readvars")
 
         cmd.extend(self.config.extra_args)
+        cmd.append(str(idf_path.resolve()))
         return cmd
 
     def run(self, run_label: str = "sim", blocking: bool = True) -> SimulationResult:

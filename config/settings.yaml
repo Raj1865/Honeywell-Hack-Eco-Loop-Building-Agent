@@ -4,8 +4,9 @@
 
 # --- EnergyPlus ---
 energyplus:
-  executable: "C:/EnergyPlusV24-1-0/energyplus.exe"   # Update after install
-  weather_file: "C:/EnergyPlusV24-1-0/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
+  executable: "C:/EnergyPlusV26-1-0/energyplus.exe"
+  idd_file: "C:/EnergyPlusV26-1-0/Energy+.idd"
+  weather_file: "C:/EnergyPlusV26-1-0/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
   baseline_idf: "models/baseline.idf"
   output_dir: "data"
   timestep: 4                         # timesteps per hour (4 = 15-min intervals)
