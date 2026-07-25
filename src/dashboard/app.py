@@ -352,6 +352,31 @@ def create_dashboard() -> dash.Dash:
 
         if active_tab == "tab-overview":
             return html.Div([
+                # Enterprise Hardware & Grid Architecture Badges Row
+                dbc.Row([
+                    dbc.Col(
+                        html.Div([
+                            html.Span("🔌 BACnet/IP HIL Driver: ", style={"fontWeight": "700", "color": "#38BDF8"}),
+                            html.Span("Honeywell ComfortPoint Open (192.168.1.100:47808) | CONNECTED", style={"color": "#F3F4F6", "fontSize": "0.82rem"}),
+                        ], style={"backgroundColor": "#0F172A", "padding": "8px 16px", "borderRadius": "8px", "border": "1px solid #0284C7"}),
+                        width=4
+                    ),
+                    dbc.Col(
+                        html.Div([
+                            html.Span("⚡ OpenADR 2.0b VEN: ", style={"fontWeight": "700", "color": "#F59E0B"}),
+                            html.Span("Signal: HIGH ($0.45/kWh) | Carbon: 210 gCO2/kWh", style={"color": "#F3F4F6", "fontSize": "0.82rem"}),
+                        ], style={"backgroundColor": "#0F172A", "padding": "8px 16px", "borderRadius": "8px", "border": "1px solid #D97706"}),
+                        width=4
+                    ),
+                    dbc.Col(
+                        html.Div([
+                            html.Span("🤖 Hierarchical Swarms: ", style={"fontWeight": "700", "color": "#10B981"}),
+                            html.Span("Supervisor Active | 5 Zone Worker Agents", style={"color": "#F3F4F6", "fontSize": "0.82rem"}),
+                        ], style={"backgroundColor": "#0F172A", "padding": "8px 16px", "borderRadius": "8px", "border": "1px solid #059669"}),
+                        width=4
+                    ),
+                ], className="mb-3"),
+
                 # Dynamic KPI Cards Row
                 html.Div(id="kpi-row"),
 

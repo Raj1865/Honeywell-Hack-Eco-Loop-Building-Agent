@@ -2,6 +2,9 @@
 > **Honeywell Automation Hackathon 2026 Submission**
 
 [![Tests](https://img.shields.io/badge/Tests-36%2F36%20Passed-10B981?style=flat-square)](result.txt)
+[![BACnet](https://img.shields.io/badge/BACnet%2FIP-Hardware--HIL-0284C7?style=flat-square)](src/hardware/bacnet_driver.py)
+[![OpenADR](https://img.shields.io/badge/OpenADR-2.0b%20VTN-D97706?style=flat-square)](src/grid/openadr_client.py)
+[![Swarm](https://img.shields.io/badge/Architecture-Multi--Agent%20Swarm-059669?style=flat-square)](src/agent/swarm_orchestrator.py)
 [![EnergyPlus](https://img.shields.io/badge/EnergyPlus-v26.1.0-blue?style=flat-square)](https://energyplus.net)
 [![Python](https://img.shields.io/badge/Python-3.11-yellow?style=flat-square)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Honeywell%20Forge-E5261F?style=flat-square)](https://www.honeywell.com/us/en/forge)
@@ -10,12 +13,15 @@
 
 ## 📌 Executive Summary
 
-**Eco-Loop** transforms commercial building automation from static rule-based control into an **autonomous, self-correcting cognitive loop**. It connects a local open-source LLM (`qwen2.5:7b-instruct`) directly to **EnergyPlus 26.1.0** building physics telemetry, dynamically optimizing HVAC setpoints every 15 minutes.
+**Eco-Loop** transforms commercial building automation from static rule-based control into an **autonomous, self-correcting cognitive loop**. It connects a local open-source LLM (`qwen2.5:7b-instruct`) directly to **EnergyPlus 26.1.0** building physics telemetry and **BACnet/IP field controllers**, dynamically optimizing HVAC setpoints every 15 minutes.
 
 - **Energy Reduction**: **~24% kWh savings** over standard fixed BMS setpoints.
 - **Thermal Comfort**: **>90% compliance** with **ASHRAE Standard 55 / ISO 7730** Fanger PMV bounds ($\pm 0.5$).
 - **Predictive Maintenance**: Z-score statistical & physics rule engine detecting equipment degradation and thermal deadband fighting.
 - **Natural Language Interface**: Data-grounded assistant for facility managers to query building status in plain English.
+- **Hardware-in-the-Loop (HIL)**: Native **BACnet/IP Protocol Driver** for physical Honeywell controllers (ComfortPoint Open, WEBs-N4).
+- **OpenADR 2.0b Grid Integration**: Automated Demand Response and real-time carbon intensity signal listener.
+- **Hierarchical Swarm Architecture**: Multi-agent network featuring local Zone Worker micro-agents supervised by a central Building Coordinator.
 
 ---
 
