@@ -2,10 +2,11 @@
 LLM Client Wrapper
 ===================
 Thin wrapper around Ollama (or compatible) API for tool-calling conversations.
-Handles structured tool definitions, streaming, retries, and timeout management.
+Handles structured tool definitions, streaming, retries, and multi-format tool extraction.
 """
 
 import json
+import re
 import time
 from typing import Optional
 
@@ -19,7 +20,7 @@ class LLMClient:
     
     Supports:
     - Chat completions with tool definitions
-    - Streaming responses
+    - Multi-format tool call parsing (Native API tool_calls + Markdown JSON code blocks)
     - Automatic retries with exponential backoff
     - Structured JSON output parsing
     """
@@ -49,14 +50,6 @@ class LLMClient:
     ) -> dict:
         """
         Send a chat completion request with optional tool definitions.
-        
-        Args:
-            messages: List of message dicts (role, content).
-            tools: Optional list of tool definitions (OpenAI-compatible format).
-            temperature: Override default temperature.
-        
-        Returns:
-            Response dict with 'message' containing 'content' and/or 'tool_calls'.
         """
         payload = {
             "model": self.model,
@@ -109,7 +102,6 @@ class LLMClient:
                 last_error = str(e)
                 logger.error(f"LLM request error (attempt {attempt}): {e}")
 
-            # Exponential backoff
             if attempt < self.max_retries:
                 wait = 2 ** attempt
                 logger.info(f"Retrying in {wait}s...")
@@ -120,9 +112,7 @@ class LLMClient:
     def extract_tool_calls(self, response: dict) -> list[dict]:
         """
         Extract tool calls from an LLM response.
-        
-        Returns:
-            List of dicts with 'name' and 'arguments' keys.
+        Supports native Ollama function calling and text content JSON parsing.
         """
         message = response.get("message", {})
         tool_calls = message.get("tool_calls", [])
@@ -130,19 +120,59 @@ class LLMClient:
         parsed = []
         for tc in tool_calls:
             func = tc.get("function", {})
-            parsed.append({
-                "name": func.get("name", ""),
-                "arguments": func.get("arguments", {}),
-            })
+            name = func.get("name", "")
+            args = func.get("arguments", {})
+            if isinstance(args, str):
+                try:
+                    args = json.loads(args)
+                except Exception:
+                    args = {}
+            if name:
+                parsed.append({"name": name, "arguments": args})
+
+        if not parsed:
+            content = message.get("content", "")
+            parsed.extend(self._parse_tool_calls_from_text(content))
+
+        return parsed
+
+    def _parse_tool_calls_from_text(self, text: str) -> list[dict]:
+        """Parse tool calls embedded in JSON text content."""
+        if not text:
+            return []
+
+        parsed = []
+        json_blocks = re.findall(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+        candidates = json_blocks if json_blocks else [text]
+
+        for block in candidates:
+            try:
+                data = json.loads(block.strip())
+                if isinstance(data, dict):
+                    actions = data.get("actions", [])
+                    if isinstance(actions, list):
+                        for item in actions:
+                            if isinstance(item, dict):
+                                name = item.get("name") or item.get("tool", "")
+                                args = item.get("arguments") or item.get("args", {})
+                                if name:
+                                    parsed.append({"name": name, "arguments": args})
+                    elif "name" in data and ("arguments" in data or "args" in data):
+                        name = data.get("name", "")
+                        args = data.get("arguments") or data.get("args", {})
+                        if name:
+                            parsed.append({"name": name, "arguments": args})
+            except Exception:
+                continue
 
         return parsed
 
     def extract_content(self, response: dict) -> str:
-        """Extract the text content from an LLM response."""
+        """Extract text content from LLM response."""
         return response.get("message", {}).get("content", "")
 
     def health_check(self) -> bool:
-        """Check if the LLM server is reachable and the model is loaded."""
+        """Check if LLM server is reachable and model loaded."""
         try:
             response = self._client.get(f"{self.base_url}/api/tags")
             if response.status_code == 200:
@@ -161,5 +191,5 @@ class LLMClient:
             return False
 
     def close(self):
-        """Close the HTTP client."""
+        """Close HTTP client."""
         self._client.close()

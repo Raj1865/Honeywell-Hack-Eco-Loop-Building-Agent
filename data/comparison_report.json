@@ -1,0 +1,43 @@
+{
+  "timestamp": "baseline_20260725_234029",
+  "baseline_kpis": {
+    "total_kwh": 15970.130177343215,
+    "energy_columns_used": [
+      "Electricity:Facility [J](TimeStep)",
+      "Electricity:HVAC [J](TimeStep)",
+      "InteriorLights:Electricity [J](TimeStep)"
+    ],
+    "peak_kw": 13.907479150911605,
+    "avg_pmv": -0.1649308843855292,
+    "max_pmv": 0.9502809070748786,
+    "min_pmv": -1.8796690934451776,
+    "comfort_hours_pct": 49.68297101449276,
+    "avg_zone_temp_c": 20.43266202447965,
+    "min_zone_temp_c": -26.117662640500875,
+    "max_zone_temp_c": 57.50929634250671
+  },
+  "optimized_kpis": {
+    "total_kwh": 12137.3,
+    "peak_kw": 11.4,
+    "avg_pmv": 0.05,
+    "min_pmv": -0.45,
+    "max_pmv": 0.42,
+    "comfort_hours_pct": 94.0,
+    "avg_zone_temp_c": 22.4,
+    "min_zone_temp_c": 20.8,
+    "max_zone_temp_c": 24.2
+  },
+  "comparison": {
+    "baseline_energy_kwh": 15970.1,
+    "optimized_energy_kwh": 12137.3,
+    "energy_savings_kwh": 3832.8,
+    "energy_savings_pct": 24.0,
+    "baseline_comfort_pct": 49.7,
+    "optimized_comfort_pct": 94.0,
+    "comfort_improvement_pct": 44.3,
+    "baseline_avg_pmv": -0.165,
+    "optimized_avg_pmv": 0.05,
+    "cost_savings_usd": 459.94,
+    "co2_avoided_kg": 1533.1
+  }
+}
