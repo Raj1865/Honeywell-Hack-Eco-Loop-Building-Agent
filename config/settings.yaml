@@ -1,0 +1,59 @@
+# ============================================================
+# Eco-Loop Building Agents — Configuration
+# ============================================================
+
+# --- EnergyPlus ---
+energyplus:
+  executable: "C:/EnergyPlusV24-1-0/energyplus.exe"   # Update after install
+  weather_file: "C:/EnergyPlusV24-1-0/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
+  baseline_idf: "models/baseline.idf"
+  output_dir: "data"
+  timestep: 4                         # timesteps per hour (4 = 15-min intervals)
+  simulation_days: 7                  # number of days for demo run
+
+# --- LLM ---
+llm:
+  provider: "ollama"                  # ollama | vllm
+  base_url: "http://localhost:11434"
+  model: "qwen2.5:7b-instruct"       # pulled via `ollama pull qwen2.5:7b-instruct`
+  temperature: 0.2                    # low temp for deterministic control
+  max_tokens: 2048
+  timeout_seconds: 30
+  max_retries: 3
+
+# --- Comfort & Safety Constraints ---
+constraints:
+  heating_setpoint_min_c: 18.0
+  heating_setpoint_max_c: 24.0
+  cooling_setpoint_min_c: 22.0
+  cooling_setpoint_max_c: 28.0
+  pmv_target_range: [-0.5, 0.5]      # ISO 7730 comfort band
+  pmv_hard_limit: [-1.5, 1.5]        # absolute override threshold
+  humidity_min_pct: 30
+  humidity_max_pct: 60
+
+# --- Energy Tariff ---
+tariff:
+  currency: "USD"
+  flat_rate_per_kwh: 0.12
+  peak_hours: [14, 15, 16, 17, 18, 19]   # hours (24h format)
+  peak_rate_per_kwh: 0.25
+  off_peak_rate_per_kwh: 0.08
+
+# --- Grid Carbon Intensity (synthetic) ---
+carbon:
+  average_gco2_per_kwh: 400
+  peak_gco2_per_kwh: 650
+  off_peak_gco2_per_kwh: 250
+
+# --- Dashboard ---
+dashboard:
+  host: "127.0.0.1"
+  port: 8050
+  refresh_interval_ms: 5000
+
+# --- Logging ---
+logging:
+  level: "INFO"
+  log_file: "data/eco_loop.log"
+  max_context_history: 20             # sliding window of timesteps for LLM context

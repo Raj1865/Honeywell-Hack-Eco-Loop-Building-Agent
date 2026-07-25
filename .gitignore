@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# EnergyPlus outputs
+data/baseline_results/*/
+data/optimized_results/*/
+*.eso
+*.rdd
+*.mdd
+*.mtd
+*.bnd
+*.eio
+*.shd
+*.mtr
+*.end
+*.dxf
+*.svg
+*.audit
+*.sql
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
