@@ -672,7 +672,7 @@ def system_tests(runner: TestRunner):
     # ---- 3.7  Dashboard module imports ------------------------------------
     def test_dashboard_imports():
         from src.dashboard import app as dash_app
-        assert hasattr(dash_app, "run_dashboard") or hasattr(dash_app, "app")
+        assert hasattr(dash_app, "create_dashboard") or hasattr(dash_app, "run_dashboard") or hasattr(dash_app, "app")
         return "Dashboard module imports without errors"
 
     runner.run("Dashboard module imports", "3. System Tests", test_dashboard_imports)

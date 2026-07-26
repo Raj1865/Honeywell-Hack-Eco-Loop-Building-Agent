@@ -90,6 +90,8 @@ class Orchestrator:
 
     def setup(self) -> bool:
         """Initialize components and validate paths."""
+        self._step_count = 0
+        self._action_log = []
         logger.info("=" * 60)
         logger.info("Eco-Loop Orchestrator — Initializing")
         logger.info("=" * 60)
@@ -119,8 +121,9 @@ class Orchestrator:
         logger.info("Setup complete — ready to start closed loop")
         return True
 
-    def run(self, max_steps: Optional[int] = None):
+    def run(self, max_steps: Optional[int] = 96):
         """Run the closed-loop optimization."""
+        self._max_steps = max_steps if max_steps is not None else 96
         logger.info("Starting closed-loop optimization...")
         start_time = time.time()
 
@@ -134,8 +137,8 @@ class Orchestrator:
         # Phase 2: AI Optimization Loop
         logger.info("Phase 2: Starting AI-optimized loop...")
         while self.state not in (LoopState.COMPLETED, LoopState.SAFE_MODE):
-            if max_steps and self._step_count >= max_steps:
-                logger.info(f"Reached max steps ({max_steps}). Completing.")
+            if self._max_steps and self._step_count >= self._max_steps:
+                logger.info(f"Reached max steps ({self._max_steps}). Completing.")
                 self.state = LoopState.COMPLETED
                 break
 
@@ -191,15 +194,13 @@ class Orchestrator:
             return {"error": str(e)}
 
     def _reason(self, sensor_data: dict) -> dict:
-        """Query LLM and generate tool actions."""
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         messages.extend(self.memory.get_context_messages())
-
         user_msg = json.dumps(sensor_data, indent=2, default=str)
         messages.append({
             "role": "user",
             "content": (
-                f"Step {self._step_count}/96 — Current Sensor Data:\n```json\n{user_msg}\n```\n\n"
+                f"Step {self._step_count}/{getattr(self, '_max_steps', 96) or 96} — Current Sensor Data:\n```json\n{user_msg}\n```\n\n"
                 "You MUST invoke the `update_setpoints` tool for active zones to optimize HVAC energy and comfort. "
                 "Specify target zone, heating_setpoint_c, and cooling_setpoint_c."
             )

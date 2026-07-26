@@ -115,7 +115,7 @@ class LiveSimRunner:
             from src.agent.orchestrator import Orchestrator
             self._orchestrator = Orchestrator()
             if self._orchestrator.setup():
-                self._orchestrator.run()
+                self._orchestrator.run(max_steps=96)
 
             with self._lock:
                 self._is_complete = True
@@ -220,7 +220,7 @@ class SimulationReplayThread:
             try:
                 data = json.loads(ACTION_LOG_PATH.read_text())
                 if isinstance(data, list) and data:
-                    return data
+                    return data[:96]
             except Exception as e:
                 logger.warning(f"Could not load eco_loop.json: {e}")
         return []
@@ -360,7 +360,6 @@ class OfflineChatResponder:
             "• **Cost savings** — \"How much money are we saving?\"\n\n"
             "Ask me anything about your building!"
         )
-
     def _answer_temperature(self, sensor: dict, n_steps: int) -> str:
         temps = {}
         for k, v in sensor.items():
@@ -369,10 +368,10 @@ class OfflineChatResponder:
                 temps[zone] = v
 
         if not temps:
-            total = 96
+            total = max(n_steps, 96)
             return "⏳ Temperature data is still loading. The simulation is at step " + str(n_steps) + f"/{total}."
 
-        total = 96
+        total = max(n_steps, 96)
         lines = ["🌡️ **Current Zone Temperatures** (Step {}/{}):\n".format(n_steps, total)]
         for zone, temp in sorted(temps.items()):
             status = "🟢 Comfortable" if 21.0 <= temp <= 24.0 else ("🔴 Too Warm" if temp > 24.0 else "🔵 Too Cold")
@@ -407,12 +406,13 @@ class OfflineChatResponder:
             for step in live_data
         )
 
+        total = max(n_steps, 96)
         return (
-            f"⚡ **Energy Status** (Step {n_steps}/96):\n\n"
+            f"⚡ **Energy Status** (Step {n_steps}/{total}):\n\n"
             f"• **Current Timestep Consumption**: {elec_kwh:.2f} kWh ({elec_j:,.0f} J)\n"
             f"• **HVAC Energy This Step**: {hvac_j / 3_600_000:.2f} kWh\n"
             f"• **Cumulative Facility Energy**: {total_kwh:.0f} kWh\n"
-            f"• **Projected 24h Total**: ~{total_kwh * (96 / max(n_steps, 1)):,.0f} kWh\n\n"
+            f"• **Projected Total**: ~{total_kwh * (total / max(n_steps, 1)):,.0f} kWh\n\n"
             f"💡 The Eco-Loop AI agent targets **24% energy reduction** through dynamic setpoint optimization "
             f"and occupancy-aware scheduling."
         )
@@ -427,7 +427,8 @@ class OfflineChatResponder:
         if not pmvs:
             return "⏳ Comfort data is still loading. Please wait for more simulation steps."
 
-        lines = [f"🛡️ **Thermal Comfort Analysis** (Step {n_steps}/96):\n"]
+        total = max(n_steps, 96)
+        lines = [f"🛡️ **Thermal Comfort Analysis** (Step {n_steps}/{total}):\n"]
         compliant = 0
         for zone, pmv in sorted(pmvs.items()):
             if -0.5 <= pmv <= 0.5:
@@ -439,14 +440,12 @@ class OfflineChatResponder:
                 status = "🔴 Outside Comfort Range"
             lines.append(f"• **{zone}**: PMV = {pmv:+.2f} — {status}")
 
-        pct = (compliant / len(pmvs)) * 100
-        lines.append(f"\n📊 **Comfort Compliance**: {pct:.0f}% of zones within ASHRAE 55 bounds (PMV ±0.5)")
-
+        lines.append(f"\n📊 **Overall Comfort Compliance**: {compliant}/{len(pmvs)} zones ({compliant/len(pmvs)*100:.0f}%) compliant.")
         return "\n".join(lines)
 
     def _answer_anomalies(self, anomalies: list) -> str:
         if not anomalies:
-            return "✅ **No anomalies detected yet.** The predictive engine is still analyzing incoming telemetry data."
+            return "✅ **No anomalies detected!** Building systems are operating within normal thermal and mechanical parameters."
 
         sev_counts = {}
         for a in anomalies:
@@ -469,14 +468,16 @@ class OfflineChatResponder:
     def _answer_status(self, sensor: dict, live_data: list, anomalies: list, n_steps: int) -> str:
         temps = {k.split(":")[0]: v for k, v in sensor.items() if "zone mean air temp" in k.lower() and "attic" not in k.lower() and isinstance(v, (int, float))}
         avg_temp = sum(temps.values()) / len(temps) if temps else 0
+        total = max(n_steps, 96)
+        pct = min(100.0, (n_steps / total) * 100)
 
         return (
-            f"📋 **Building Status Summary** (Step {n_steps}/96):\n\n"
-            f"• **Simulation Progress**: {n_steps}/96 steps ({n_steps * 100 / 96:.0f}%)\n"
+            f"📋 **Building Status Summary** (Step {n_steps}/{total}):\n\n"
+            f"• **Simulation Progress**: {n_steps}/{total} steps ({pct:.0f}%)\n"
             f"• **Average Zone Temperature**: {avg_temp:.1f}°C\n"
             f"• **Active Zones**: {len(temps)}\n"
             f"• **Anomalies Detected**: {len(anomalies)}\n"
-            f"• **AI Agent Status**: {'🔄 Running' if n_steps < 96 else '✅ Complete'}\n\n"
+            f"• **AI Agent Status**: {'🔄 Running' if n_steps < total else '✅ Complete'}\n\n"
             f"The Eco-Loop agent is autonomously optimizing HVAC setpoints every 15 minutes "
             f"to minimize energy consumption while maintaining ASHRAE 55 thermal comfort."
         )
@@ -489,17 +490,18 @@ class OfflineChatResponder:
                 sp_type = "Heating" if "heating" in k.lower() else "Cooling"
                 setpoints.setdefault(zone, {})[sp_type] = v
 
+        total = max(n_steps, 96)
         if not setpoints:
             # Try from actions
             actions = latest.get("actions", [])
-            lines = [f"🎛️ **Current HVAC Setpoints** (Step {n_steps}/96):\n"]
+            lines = [f"🎛️ **Current HVAC Setpoints** (Step {n_steps}/{total}):\n"]
             for a in actions[:5]:
                 args = a.get("args", {})
                 if "zone" in args:
                     lines.append(f"• **{args['zone']}**: Heating={args.get('heating_setpoint_c', 'N/A')}°C, Cooling={args.get('cooling_setpoint_c', 'N/A')}°C")
             return "\n".join(lines) if len(lines) > 1 else "⏳ Setpoint data is still loading."
 
-        lines = [f"🎛️ **Current HVAC Setpoints** (Step {n_steps}/96):\n"]
+        lines = [f"🎛️ **Current HVAC Setpoints** (Step {n_steps}/{total}):\n"]
         for zone, sps in sorted(setpoints.items()):
             if "ATTIC" in zone:
                 continue
@@ -516,8 +518,9 @@ class OfflineChatResponder:
         optimized_kwh = baseline_kwh * 0.76
         savings_kwh = baseline_kwh - optimized_kwh
         rate = 0.12
+        total = max(n_steps, 96)
         return (
-            f"💵 **Cost & Energy Savings** (Step {n_steps}/96):\n\n"
+            f"💵 **Cost & Energy Savings** (Step {n_steps}/{total}):\n\n"
             f"• **Baseline Energy**: {baseline_kwh:,.0f} kWh\n"
             f"• **Eco-Loop Optimized**: {optimized_kwh:,.0f} kWh\n"
             f"• **Energy Saved**: {savings_kwh:,.0f} kWh (**{savings_kwh / baseline_kwh * 100:.1f}% reduction**)\n"
@@ -529,14 +532,15 @@ class OfflineChatResponder:
     def _answer_general(self, sensor: dict, live_data: list, anomalies: list, n_steps: int) -> str:
         temps = {k.split(":")[0]: v for k, v in sensor.items() if "zone mean air temp" in k.lower() and "attic" not in k.lower() and isinstance(v, (int, float))}
         avg_temp = sum(temps.values()) / len(temps) if temps else 0
+        total = max(n_steps, 96)
 
         return (
-            f"🤖 **Eco-Loop AI Response** (Step {n_steps}/96):\n\n"
+            f"🤖 **Eco-Loop AI Response** (Step {n_steps}/{total}):\n\n"
             f"I have access to real-time building telemetry. Here's a quick snapshot:\n\n"
             f"• **Average Zone Temp**: {avg_temp:.1f}°C\n"
             f"• **Active Zones**: {len(temps)}\n"
             f"• **Anomalies**: {len(anomalies)} detected\n"
-            f"• **Simulation Progress**: {n_steps}/96\n\n"
+            f"• **Simulation Progress**: {n_steps}/{total}\n\n"
             f"Try asking me specific questions like:\n"
             f"• _\"What's the temperature in CORE_ZN?\"_\n"
             f"• _\"How much energy are we saving?\"_\n"
@@ -635,7 +639,7 @@ def _load_live_action_log() -> list:
         try:
             data = json.loads(ACTION_LOG_PATH.read_text())
             if isinstance(data, list):
-                return data
+                return data[:96]
         except Exception:
             pass
     return []
@@ -1355,11 +1359,11 @@ def create_dashboard() -> dash.Dash:
 
         b_kwh = float(b_kpis.get("total_kwh", 15970.1))
         metrics = _compute_live_metrics(action_log)
-        current_step = metrics["steps"]
+        current_step = min(metrics["steps"], 96)
         total_steps = 96
 
         # Dynamically compute values based on progress
-        progress_frac = current_step / total_steps if total_steps > 0 else 0
+        progress_frac = min(1.0, current_step / 96)
 
         # Energy: interpolate from baseline toward optimized
         o_kwh_full = round(b_kwh * 0.76, 1)
@@ -1404,11 +1408,11 @@ def create_dashboard() -> dash.Dash:
         is_runner_active = runner_status["is_running"]
 
         action_log = _load_live_action_log()
-        current = len(action_log)
+        current = min(len(action_log), 96)
         total = 96
-        progress_pct = (current / total) * 100 if total > 0 else 0
-        is_running = is_runner_active or (0 < current < total)
-        is_complete = not is_runner_active and (current >= total)
+        progress_pct = (current / 96) * 100
+        is_running = is_runner_active or (0 < current < 96)
+        is_complete = not is_runner_active and (current >= 96)
 
         # Progress bar
         if is_running or current > 0:

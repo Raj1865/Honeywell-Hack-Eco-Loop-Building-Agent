@@ -81,15 +81,15 @@ class FacilityChatInterface:
 - Min Zone Temp: {kpis.get('min_zone_temp_c', 'N/A'):.1f}°C""")
 
         # Load latest action log
-        log_path = Path("data/eco_loop.json")
         if log_path.exists():
             try:
                 log_data = json.loads(log_path.read_text())
                 if isinstance(log_data, list) and log_data:
                     latest = log_data[-1]
                     n_steps = len(log_data)
+                    total_steps = max(n_steps, 96)
                     context_parts.append(f"""### AI Optimization Status
-- Steps Completed: {n_steps} / 96
+- Steps Completed: {n_steps} / {total_steps}
 - Latest Step: {latest.get('step', '?')}
 - Current State: {latest.get('state', '?')}""")
 
