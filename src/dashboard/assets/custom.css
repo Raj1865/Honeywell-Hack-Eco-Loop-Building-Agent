@@ -1,0 +1,62 @@
+/* Eco-Loop Dashboard CSS Animations & Chat Styling */
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(52, 211, 153, 0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 20px rgba(52, 211, 153, 0.8); }
+}
+@keyframes progress-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+}
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes typing-dots {
+    0%, 20% { opacity: 0.2; }
+    50% { opacity: 1; }
+    80%, 100% { opacity: 0.2; }
+}
+.pulse-live {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+.fade-in {
+    animation: fade-in-up 0.5s ease-out;
+}
+.progress-bar-animated {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+.progress-bar-animated::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 25%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: progress-slide 2s infinite;
+}
+.chat-bubble-user {
+    background: linear-gradient(135deg, #0284C7, #0369A1);
+    color: white;
+    border-radius: 16px 16px 4px 16px;
+    padding: 12px 16px;
+    margin: 8px 0 8px 60px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    animation: fade-in-up 0.3s ease-out;
+}
+.chat-bubble-assistant {
+    background: #F1F5F9;
+    color: #1E293B;
+    border-radius: 16px 16px 16px 4px;
+    padding: 12px 16px;
+    margin: 8px 60px 8px 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    animation: fade-in-up 0.3s ease-out;
+}
+.chat-bubble-assistant strong { color: #0F172A; }
+.chat-bubble-assistant code { background: #E2E8F0; padding: 1px 5px; border-radius: 4px; font-size: 0.82rem; }

@@ -10,6 +10,7 @@ State Machine:
 
 import json
 import time
+import shutil
 import traceback
 from enum import Enum, auto
 from pathlib import Path
@@ -98,8 +99,13 @@ class Orchestrator:
             return False
 
         ep_cfg = self.config["energyplus"]
+        opt_dir = Path("data/optimized_results")
+        opt_dir.mkdir(parents=True, exist_ok=True)
+        opt_idf = opt_dir / "optimized.idf"
+        shutil.copy2(ep_cfg["baseline_idf"], opt_idf)
+
         self.sim_config = SimulationConfig(
-            idf_path=ep_cfg["baseline_idf"],
+            idf_path=str(opt_idf),
             weather_path=ep_cfg["weather_file"],
             output_dir="data/optimized_results",
             energyplus_exe=ep_cfg["executable"],
@@ -107,7 +113,7 @@ class Orchestrator:
 
         self.runner = EnergyPlusRunner(self.sim_config)
         self.actuator = SetpointActuator(self.sim_config.idf_path)
-        logger.info("EnergyPlus runner & actuator initialized")
+        logger.info("EnergyPlus runner & actuator initialized with dedicated optimized.idf")
 
         self.state = LoopState.READING
         logger.info("Setup complete — ready to start closed loop")

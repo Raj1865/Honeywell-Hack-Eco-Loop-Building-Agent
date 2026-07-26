@@ -182,17 +182,17 @@ class SetpointActuator:
         logger.info(f"Saved modified IDF (regex): {self.idf_path}")
 
     def _regex_update_schedule(self, text: str, schedule_type: str, new_value: float) -> str:
-        """Update schedule values in IDF text using regex."""
-        # This is a simplified approach — matches "Until: HH:MM, <value>"
-        # in schedule blocks that contain the schedule_type keyword
-        pattern = r"(Until:\s*\d{1,2}:\d{2}\s*,\s*)(\d+\.?\d*)"
+        """Update schedule values in specific thermostat setpoint schedules in IDF text."""
+        kw = "htg" if "heat" in schedule_type.lower() else "clg"
 
-        def replacer(match):
-            return f"{match.group(1)}{new_value:.1f}"
+        def update_block(block_match):
+            block_text = block_match.group(0)
+            pattern = r"(Until:\s*\d{1,2}:\d{2}\s*,\s*)(\d+\.?\d*)"
+            return re.sub(pattern, lambda m: f"{m.group(1)}{new_value:.2f}", block_text)
 
-        # Only replace within relevant schedule blocks
-        # For a production system, this should be more targeted
-        return re.sub(pattern, replacer, text)
+        # Match Schedule:Compact blocks containing the target keyword (HTG or CLG)
+        block_pattern = r"(Schedule:Compact,\s*[\w_-]*" + kw + r"[\w_-]*,[\s\S]*?;\s*)"
+        return re.sub(block_pattern, update_block, text, flags=re.IGNORECASE)
 
     def backup_idf(self, suffix: str = "backup") -> str:
         """Create a backup copy of the current IDF."""

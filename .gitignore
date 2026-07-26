@@ -15,7 +15,8 @@ env/
 
 # EnergyPlus outputs
 data/baseline_results/*/
-data/optimized_results/*/
+data/optimized_results/
+data/*_live.json
 *.eso
 *.rdd
 *.mdd
